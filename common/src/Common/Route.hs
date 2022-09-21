@@ -31,20 +31,21 @@ data BackendRoute :: * -> * where
 
 data FrontendRoute :: * -> * where
   FrontendRoute_Main :: FrontendRoute ()
-  FrontendRoute_Home :: FrontendRoute ()
-  Research :: FrontendRoute ()
-  AI :: FrontendRoute ()
-  AceBeta :: FrontendRoute ()
-  Scrappy :: FrontendRoute ()
-  AceAlpha :: FrontendRoute ()
-  AceMainSite :: FrontendRoute ()
-  ProductFinder :: FrontendRoute ()
-  SalesTool :: FrontendRoute ()
-  AmazonAutomation :: FrontendRoute ()
-  Pathways :: FrontendRoute ()
-  Nervos :: FrontendRoute ()
-  Obelisk :: FrontendRoute ()
-  Smithy :: FrontendRoute ()
+  ScrappyDemo :: FrontendRoute () 
+  -- FrontendRoute_Home :: FrontendRoute ()
+  -- Research :: FrontendRoute ()
+  -- AI :: FrontendRoute ()
+  -- AceBeta :: FrontendRoute ()
+  -- Scrappy :: FrontendRoute ()
+  -- AceAlpha :: FrontendRoute ()
+  -- AceMainSite :: FrontendRoute ()
+  -- ProductFinder :: FrontendRoute ()
+  -- SalesTool :: FrontendRoute ()
+  -- AmazonAutomation :: FrontendRoute ()
+  -- Pathways :: FrontendRoute ()
+  -- Nervos :: FrontendRoute ()
+  -- Obelisk :: FrontendRoute ()
+  -- Smithy :: FrontendRoute ()
   -- This type is used to define frontend routes, i.e. ones for which the backend will serve the frontend.
 
 fullRouteEncoder
@@ -58,20 +59,21 @@ fullRouteEncoder = mkFullRouteEncoder
   -- pathParamEncoder singlePathSegmentEncoder
   (\case
       FrontendRoute_Main -> PathEnd $ unitEncoder mempty
-      FrontendRoute_Home -> PathSegment "home" $ unitEncoder mempty
-      Research -> PathSegment "research" $ unitEncoder mempty
-      AI -> PathSegment "ai" $ unitEncoder mempty
-      AceBeta -> PathSegment "acebeta" $ unitEncoder mempty
-      Scrappy -> PathSegment "scrappy" $ unitEncoder mempty
-      AceAlpha -> PathSegment "acealpha" $ unitEncoder mempty
-      AceMainSite -> PathSegment "acemain" $ unitEncoder mempty
-      ProductFinder -> PathSegment "productfinder" $ unitEncoder mempty
-      SalesTool -> PathSegment "salestool" $ unitEncoder mempty
-      AmazonAutomation -> PathSegment "amazonautomation" $ unitEncoder mempty
-      Pathways -> PathSegment "pathways" $ unitEncoder mempty
-      Nervos -> PathSegment "nervos" $ unitEncoder mempty
-      Obelisk -> PathSegment "obelisk" $ unitEncoder mempty
-      Smithy -> PathSegment "smithy" $ unitEncoder mempty
+      ScrappyDemo -> PathSegment "scrappyDemo" $ unitEncoder mempty 
+      -- FrontendRoute_Home -> PathSegment "home" $ unitEncoder mempty
+      -- Research -> PathSegment "research" $ unitEncoder mempty
+      -- AI -> PathSegment "ai" $ unitEncoder mempty
+      -- AceBeta -> PathSegment "acebeta" $ unitEncoder mempty
+      -- Scrappy -> PathSegment "scrappy" $ unitEncoder mempty
+      -- AceAlpha -> PathSegment "acealpha" $ unitEncoder mempty
+      -- AceMainSite -> PathSegment "acemain" $ unitEncoder mempty
+      -- ProductFinder -> PathSegment "productfinder" $ unitEncoder mempty
+      -- SalesTool -> PathSegment "salestool" $ unitEncoder mempty
+      -- AmazonAutomation -> PathSegment "amazonautomation" $ unitEncoder mempty
+      -- Pathways -> PathSegment "pathways" $ unitEncoder mempty
+      -- Nervos -> PathSegment "nervos" $ unitEncoder mempty
+      -- Obelisk -> PathSegment "obelisk" $ unitEncoder mempty
+      -- Smithy -> PathSegment "smithy" $ unitEncoder mempty
   )
 
 concat <$> mapM deriveRouteComponent
