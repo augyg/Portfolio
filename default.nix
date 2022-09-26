@@ -18,23 +18,49 @@ let
   pkgs = import <nixpkgs> {};
 in
 with obelisk;
-project ./. ({ ... }: {
+project ./. ({ pkgs, hackGet, ... }@args: {
   android.applicationId = "systems.obsidian.obelisk.examples.minimal";
   android.displayName = "Obelisk Minimal Example";
   ios.bundleIdentifier = "systems.obsidian.obelisk.examples.minimal";
   ios.bundleName = "Obelisk Minimal Example";
-  overrides =
-    self: super:
-    let
-      scrappySrc = pkgs.fetchFromGitHub {
-        owner = "Ace-Interview-Prep";
-        repo = "scrappy";
-        rev = "0.1.0.5";
-        sha256 = "11p673cl90nqmm4zqzzzpr7sy8dbbmgn8wqib1iqbvrs9kj0pbvg";
-      };
-    in
-      {
-        scrappy = self.callCabal2nix "scrappy" scrappySrc {};
-      };
+  overrides = pkgs.lib.composeExtensions
+    (pkgs.callPackage (hackGet ./dep/rhyolite) args).haskellOverrides
+    (self: super:
+      with pkgs.haskell.lib;
+      let
+          scrappySrc = pkgs.fetchFromGitHub {
+            owner = "Ace-Interview-Prep";
+            repo = "scrappy";
+            rev = "0.1.0.5";
+            sha256 = "11p673cl90nqmm4zqzzzpr7sy8dbbmgn8wqib1iqbvrs9kj0pbvg";
+          };
+      in
+        {
+          scrappy = self.callCabal2nix "scrappy" scrappySrc {};
+        });
+        #   let
+        #   scrappySrc = pkgs.fetchFromGitHub {
+        #     owner = "Ace-Interview-Prep";
+        #     repo = "scrappy";
+        #     rev = "0.1.0.5";
+        #     sha256 = "11p673cl90nqmm4zqzzzpr7sy8dbbmgn8wqib1iqbvrs9kj0pbvg";
+        #   };
+        # in
+        #   scrappy = self.callCabal2nix "scrappy" scrappySrc {};
+        # Your custom overrides go here.
+      
+  # overrides =
+  #   self: super:
+  #   let
+  #     scrappySrc = pkgs.fetchFromGitHub {
+  #       owner = "Ace-Interview-Prep";
+  #       repo = "scrappy";
+  #       rev = "0.1.0.5";
+  #       sha256 = "11p673cl90nqmm4zqzzzpr7sy8dbbmgn8wqib1iqbvrs9kj0pbvg";
+  #     };
+  #   in
+  #     {
+  #       scrappy = self.callCabal2nix "scrappy" scrappySrc {};
+  #     };
   withHoogle = true;
 })

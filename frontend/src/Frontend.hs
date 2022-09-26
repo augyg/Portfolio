@@ -6,15 +6,22 @@
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE RecursiveDo #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE DeriveGeneric #-}
+
 
 module Frontend where
 
+import GHC.Generics (Generic)
+import qualified Text.Email.Validate as EmailValidate
+import Data.Aeson
 -- import FrontendTwo
 import Scrape (runScraperOnHtml)
 import Requests (getHtml')
 import Elem.ElemHeadParse (hrefParser)
 
-import Data.Maybe (fromMaybe, fromJust)
+import Data.Maybe (fromMaybe, fromJust, isJust)
 import Control.Monad.IO.Class
 import qualified Data.Map as Map 
 
@@ -287,7 +294,7 @@ homepage :: ( DomBuilder t m
             , Prerender t m
             , MonadHold t m
             , PostBuild t m
-            , MonadFix m 
+            , MonadFix m
             ) => m ()
 homepage = elClass "div" "banner" $ do
   -- TODO(Galen): Animation on Polymath:Hover of my skills as singular words
@@ -299,7 +306,7 @@ homepage = elClass "div" "banner" $ do
     elAttr "span" ("style" =: "color: #FC74FD;") $ text " polymath"
   ----------------------------------------------------------------------
   -- elClass "div" 
-  elClass "div" "body2 px-48" $ do 
+  elClass "div" "body2 px-48 pb-20" $ do 
     elClass "div" "aboutMe pr-5 pt-10" $ do
       elClass "span" "titleText text-2xl" $ text "About me"
       elClass "div" "py-5 text-white text-base" $ text aboutMeText
@@ -367,15 +374,185 @@ homepage = elClass "div" "banner" $ do
 
     elClass "div" "pt-10" $ do
       elAttr "div" ("class" =: "text-2xl" <> "style" =: "color:#FC74FD;") $ text "Education"
-      
-      elAttr "div" ("href" =: "galen.ace.research") $ elClass "div" "pt-5 text-white" $ text "@Galen.Ace.Research" 
-      elAttr "div" ("href" =: "my youtube channel") $ elClass "div" "pt-5 text-white" $ text "Simple Haskell"
+      elClass "div" "grid grid-cols-2" $ do 
+        elClass "div" "pt-5" $ do
+          elAttr "a" ("href" =: "https://www.instagram.com/galen.ace.research/") $ do
+            elStyle "div" "color:#6495ED" $ text "@Galen.Ace.Research" 
+          elAttr "a" ("href" =: "https://www.youtube.com/channel/UCWj1YE_9RywYA92ZZH6YL6w") $ do
+            elAttr "div" ("class" =: "pt-5" <> "style" =: "color:#6495ED") $ text "Simple Haskell (on the right)"
+          elAttr "a" ("href" =: "https://www.linkedin.com/pulse/what-most-general-definition-probability-galen-sprout/") $ do
+            elAttr "div" ("class" =: "pt-5" <> "style" =: "color:#6495ED") $ text "The Most General Definition of Probability"  
+          elAttr "a" ("href" =: "https://medium.com/all-things-ace/scrappy-tutorial-135283dc2af") $ do
+            elAttr "div" ("class" =: "pt-5" <> "style" =: "color:#6495ED") $ text "Scrappy Tutorial"
+        elClass "div" "pt-5" $ do
+        
+   -- <iframe width="560" height="315" src="https://www.youtube.com/embed/uykWjDYKNtU" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
+          let src = "https://www.youtube.com/embed/uykWjDYKNtU" 
+      
+          elAttr "iframe" ("width" =: "560" <> "height" =: "315" <> "src" =: src <> "title" =: "Youtube video player" <> "frameborder" =: "0"
+                           <> "allow" =: "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                           <> "allowFullscreen" =: "true") blank
+
+  elAttr "div" ("style" =: "background-color:black;width:100%;height:600px" <> "class" =: "pt-10 flex justify-center") $ do
+    
+    elClass "div" "" $ prerender (pure never) contactMeForm
+
+      
 
     --- email form
              
     
   return ()
+
+ 
+
+contactMeForm :: ( DomBuilder t m
+                 , MonadJSM (Performable m)
+                 , PerformEvent t m
+                 , TriggerEvent t m
+                 , MonadHold t m
+                 , PostBuild t m 
+                 ) => m (Event t ())
+contactMeForm = elAttr "div" ("class" =: "p-10 border rounded-lg bg-white" <> "style" =: "border-color:#FC74FD;border-width:4px;") $ do
+  let inputClass = "border rounded-md border-black p-2"
+  elStyle "div" "font-size:30px;color:#FC74FD" $ text "Contact Me"
+  elClass "div" "pt-3" $ text "Have a question or want to work together?"
+  elClass "div" "pt-3" $ text "Your Name"
+  name <- elClass "div" "" $ fmap (current . value) $ inputElement $ def & initialAttributes .~ "class" =: inputClass
+  elClass "div" "pt-3" $ text "Your Email"
+  email <- elClass "div" "" $ fmap (current . value) $ inputElement $ def & initialAttributes .~ "class" =: inputClass
+  elClass "div" "pt-3" $ text "Message"
+  message <- elStyle "div" "" $ fmap (current . value) $ textAreaElement $ def & initialAttributes .~ ("style" =: "height:100px;width:100%"
+                                                                                                       <> "rows" =: "2"
+                                                                                                       <> "class" =: inputClass
+                                                                                                      )
+             
+  
+  submit <- button "Submit"
+
+  
+  
+  --errorMessage <- holdDyn "" $ mergeWith const [nameIsEmpty, emailInvalid, messageIsEmpty]
+  
+  --dynText errorMessage 
+  let
+    
+    e = tag ((,,) <$> (("NAME:" <>) <$> name) <*> (("EMAIL:" <>) <$> email) <*> (("MESSAGE:" <>) <$> message)) submit
+
+    formRaw = (,,) <$> name <*> email <*> message
+
+    eithForm = ffor formRaw $ \(n, e, m) -> validateForm n e m
+    (err, form) = fanEither $ tag eithForm submit
+  -- Form type
+  -- validate Form for the 3 checks
+  -- Either Error Form 
+
+  errorMessage <- holdDyn Nothing (Just <$> err)
+  el "div" $ dynText $ (fromMaybe "") <$> errorMessage 
+  
+  --fanEither e 
+  res <- performRequestAsync $ fmap (postJson "http://localhost:8000/email") $ gate (fmap isJust $ current errorMessage) $ form
+
+  -- TOOO(galen): what if the internet is out? 502
+  
+  
+  pure (() <$ res)
+  -- name
+  -- email
+  -- message
+
+--feedbackHelper f = dyn_ $ maybe blank (uncurry feedbackAlert) <$> f
+
+data Form = Form T.Text T.Text T.Text deriving Generic
+
+instance ToJSON Form
+
+validateForm :: T.Text -> T.Text -> T.Text -> Either T.Text Form
+validateForm name email msg =
+  case T.null name of
+    True -> Left "Name cannot be empty"
+    False -> case EmailValidate.validate (T.encodeUtf8 email) of
+      Left str -> Left "Invalid Email" 
+      Right _ -> case T.null msg of
+        True -> Left "message cannot be empty"
+        False -> Right $ Form name email msg 
+        
+      
+
+
+
+
+
+newtype SignupConfig t = SignupConfig
+  { _signupConfig_errors :: Dynamic t (Maybe T.Text)
+  }
+
+data Signup t m = Signup
+  { _signup_email :: InputEl t m
+  , _signup_submit :: Event t ()
+  }
+
+
+type InputEl t m = InputElement EventResult (DomBuilderSpace m) t
+type Template t m = (DomBuilder t m, PostBuild t m, MonadHold t m, MonadFix m)
+
+signup
+  :: ( Template t m
+     , SetRoute t (R FrontendRoute) m
+     , RouteToUrl (R FrontendRoute) m
+     , Prerender t m
+     )
+  => SignupConfig t
+  -> m (Signup t m)
+signup cfg = screenContainer $ do
+  elClass "div" "p-4 mx-auto md:w-sm t_login" $ mdo
+    elClass "h1" "font-karla font-bold text-h1 text-copy mt-12" $
+      text "Signup"
+    email <- elClass "div" "flex flex-col mt-4" $ do
+      elClass "div" "font-facit font-label text-label" $ text "Email"
+      inputElement $ def
+        & initialAttributes .~ "type" =: "text"
+    maybeDisplay errorMessage $ _signupConfig_errors cfg
+    submit <- primaryButton "Confirm Email"
+    elClass "div" "font-facit font-label underline text-label text-link text-center mt-4" $ blank
+      --routeLink (FrontendRoute_Login :/ ()) $ text "Already have an account?"
+    return $ Signup
+      { _signup_email = email
+      , _signup_submit = submit
+      }
+
+
+screenContainer :: (DomBuilder t m) => m a -> m a
+screenContainer = elClass "div" "w-screen h-screen bg-background flex flex-col overflow-hidden"
+
+primaryButton :: DomBuilder t m => T.Text -> m (Event t ())
+primaryButton buttonText = do
+  (e, _) <- elClass' "button" classes $ text buttonText
+  pure $ domEvent Click e
+  where
+    classes =
+      "focus:outline-none w-full p-4 mt-16 shadow-button bg-primary \
+      \ font-facit font-bold text-white text-body text-center rounded \
+      \ hover:bg-primary-rich active:bg-primary-desaturated \
+      \ focus:ring-4 ring-primary ring-opacity-50"
+
+-- | Render the given template only when the 'Dynamic' is 'Just'.
+maybeDisplay
+  :: Template t m
+  => (a -> m ()) -- ^ How to render contents
+  -> Dynamic t (Maybe a) -- ^ What to watch for
+  -> m ()
+maybeDisplay template val = dyn_ $ ffor val $ \case
+  Nothing -> blank
+  Just x -> template x
+
+
+-- | Render an error message.
+errorMessage :: Template t m => T.Text -> m ()
+errorMessage t =
+  divClass "font-facit text-error text-opacity-70 h-4 mt-1" $ text t
+
 
 engineering :: ( DomBuilder t m
                , MonadFix m

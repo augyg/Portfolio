@@ -25,10 +25,11 @@ import Obelisk.Route.TH
 data BackendRoute :: * -> * where
   -- | Used to handle unparseable routes.
   BackendRoute_Missing :: BackendRoute ()
+  BackendRoute_Email :: BackendRoute () 
   BackendRoute_Main :: BackendRoute Text -- This must match the result of the encoder
   -- You can define any routes that will be handled specially by the backend here.
   -- i.e. These do not serve the frontend, but do something different, such as serving static files.
-  BackendRoute_Email :: BackendRoute () 
+  
 
 data FrontendRoute :: * -> * where
   FrontendRoute_Main :: FrontendRoute ()

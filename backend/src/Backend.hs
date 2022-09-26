@@ -6,7 +6,14 @@ module Backend where
 import Snap.Core
 import Snap.Util.CORS (applyCORS, defaultOptions) --CORSOptions(..), OriginList(Everywhere))
 import Data.Maybe (fromJust)
+import Rhyolite.Email
+import Network.HaskellNet.Auth (AuthType(..))
+import Network.Mail.Mime
 
+import qualified Data.Text as T
+import qualified Data.Text.Encoding as T
+import qualified Data.Text.Lazy as LT
+import qualified Data.Text.Lazy.Encoding as LT
 import Scrape (runScraperOnHtml)
 import Requests (getHtml')
 import Elem.SimpleElemParser (el)
@@ -16,6 +23,9 @@ import Elem.Types (ElemHead)
 import qualified Data.Map as Map 
 import qualified Data.Text as T
 import Text.Parsec (ParsecT, Stream, parserZero)
+
+import Data.ByteString.Lazy as LBS
+import qualified System.IO.Streams as Streams (toList)
 
 import Common.Route
 import Obelisk.Backend
@@ -50,6 +60,32 @@ backend = Backend
           case runScraperOnHtml srcScraper html of
             Just (href:_) -> (liftIO $ print ("HREF=" <> href)) *> (writeText . T.pack $ href)
             _ -> writeText sowwyIveFailedYou
+        BackendRoute_Email :/ () -> do
+
+          
+          stuffs <- getRequestBody 
+
+          let config = EmailConfig "smtp.mailtrap.io" 2525 SMTPProtocol_Plain $ Just $ EmailAuth LOGIN "9515e22fb3955f" "1491846585ad61"
+
+
+          
+          let to = Address
+                  { addressName = Nothing
+                  , addressEmail = "galen.sprout@gmail.com" 
+                  } -- recipien
+              --link = baseRoute <> resetRoute -- password reset link
+              from = Address
+                     { addressName = Just $ "galens portfolio"
+                     , addressEmail = "galensportfolio@noreply.example.com"
+                     }
+
+              mail = simpleMail' to from "PORTFOLIO INQUIRY" $ LT.decodeUtf8 stuffs
+          liftIO $ print mail
+          liftIO $ sendEmail config mail 
+          
+          
+          pure ()
+          
         BackendRoute_Missing :/ () -> (liftIO $ print "fail") >> writeText sowwyIveFailedYou
           -- error "404" -- we need to show something in this simple app and we cant gurantee that
           
@@ -57,6 +93,12 @@ backend = Backend
           -- mainB word 
   , _backend_routeEncoder = fullRouteEncoder
   }
+
+
+
+getRequestBody :: MonadSnap m => m LBS.ByteString
+getRequestBody = LBS.fromChunks <$> runRequestBody Streams.toList
+
 
 
 -- If you wanted to do further analysis on the scraped pattern you could use Maybe's monadic interface

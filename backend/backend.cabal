@@ -34,6 +34,9 @@ library
                , snap-cors
                , scrappy
                , snap-core
+               , rhyolite-email
+               , io-streams
+               , HaskellNet 
   exposed-modules:
     Backend
   ghc-options: -Wall -Wredundant-constraints -Wincomplete-uni-patterns -Wincomplete-record-updates -O -fno-show-valid-hole-fits

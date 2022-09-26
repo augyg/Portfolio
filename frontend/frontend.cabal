@@ -7,6 +7,7 @@ library
   hs-source-dirs: src
   build-depends: base
                , common
+               , aeson
                , obelisk-frontend
                , obelisk-route
                , jsaddle
@@ -34,6 +35,7 @@ library
                , http-types
                , stm
                , parallel
+               , email-validate
   exposed-modules:
     Frontend
     FrontendTwo
