@@ -15,16 +15,12 @@ library
                , obelisk-executable-config-lookup
                , obelisk-generated-static
                , text
-                       -->=4.12 && <4.13
                , parser-combinators
                , parsec
                , megaparsec
                , replace-megaparsec
                , extra
                , modern-uri
-               , http-client
-               , HTTP
-               , http-client-tls
                , containers
                , text
                , bytestring 
@@ -32,9 +28,8 @@ library
                , transformers
                , mtl
                , exceptions
-               , http-types
                , stm
-               , parallel
+               --, parallel
                , email-validate
   exposed-modules:
     Frontend
