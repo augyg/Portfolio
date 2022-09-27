@@ -17,9 +17,6 @@ import GHC.Generics (Generic)
 import qualified Text.Email.Validate as EmailValidate
 import Data.Aeson
 -- import FrontendTwo
-import Scrape (runScraperOnHtml)
-import Requests (getHtml')
-import Elem.ElemHeadParse (hrefParser)
 
 import Data.Maybe (fromMaybe, fromJust, isJust)
 import Control.Monad.IO.Class
