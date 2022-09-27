@@ -63,9 +63,6 @@ executable frontend
                , replace-megaparsec
                , extra
                , modern-uri
-               , http-client
-               , HTTP
-               , http-client-tls
                , containers
                , text
                , bytestring 
@@ -73,9 +70,7 @@ executable frontend
                , transformers
                , mtl
                , exceptions
-               , http-types
                , stm
-               , parallel
   ghc-options: -threaded -O -Wall -Wredundant-constraints -Wincomplete-uni-patterns -Wincomplete-record-updates -fno-show-valid-hole-fits
   if impl(ghcjs)
     ghc-options: -dedupe

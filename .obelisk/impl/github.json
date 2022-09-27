@@ -1,8 +1,8 @@
 {
   "owner": "obsidiansystems",
   "repo": "obelisk",
-  "branch": "develop",
+  "branch": "db-generalised-deployments-rebase",
   "private": false,
-  "rev": "e37c186e31dc592d57a78b01b0d9b4d55d152159",
-  "sha256": "0qz5aspikdnk2vnsymfq8nvy2d70dcydjs121h3gvr1xldprq5jg"
+  "rev": "8af64fd799f6975ed68b60e92e8514b1da016bf3",
+  "sha256": "129fvv2cbi43bkkqkm5j9vcdiwpn5v7w1jnvwhzm7dpkw2rl2sc5"
 }
