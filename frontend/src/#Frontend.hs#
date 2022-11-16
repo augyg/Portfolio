@@ -443,11 +443,12 @@ contactMeForm responseSuccess = elAttr "div" ("class" =: "p-10 border rounded-lg
   submit <- button "Submit"
 
   let (err, formToSubmit) = fanEither $ tag (current eithForm) submit
-    
+
+  
   formMessage <- holdDyn Nothing $ mergeWith const [ Just <$> err
                                                     , Nothing <$ formToSubmit -- TODO: this may happen twice
                                                     , Just <$> (updated responseSuccess)
-                                                    , Nothing <$ (updated message)
+                                                    , Nothing <$ updated message
                                                     ]
   el "div" $ dynText $ fromMaybe "" <$> formMessage
 
