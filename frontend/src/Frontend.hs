@@ -45,7 +45,7 @@ import Obelisk.Route.Frontend
 frontend :: Frontend (R FrontendRoute)
 frontend = Frontend
   { _frontend_head = do
-      el "title" $ text "Obelisk Minimal Example"
+      el "title" $ text "Galen Sprout Consulting"
       elAttr "link" ("href" =: $(static "main.css") <> "type" =: "text/css" <> "rel" =: "stylesheet") blank
       elAttr "script" ("src" =: "https://cdn.tailwindcss.com") $ blank
       elAttr "link" ("rel" =: "stylesheet" <> "href" =: "https://fonts.googleapis.com/css?family=Tangerine") $ blank
