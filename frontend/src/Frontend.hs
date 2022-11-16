@@ -393,8 +393,24 @@ homepage = elClass "div" "banner" $ do
 
   elAttr "div" ("style" =: "background-color:black;width:100%;height:600px" <> "class" =: "pt-10 flex justify-center") $ do
     
-    elClass "div" "" $ prerender (pure never) contactMeForm
+--    elClass "div" "" $ prerender (pure never) contactMeForm
+    eithForm :: Dynamic t (Either T.Text Form) <- elClass "div" "" $ contactMeForm
 
+    submit <- button "submit"
+
+    let (err, formToSubmit) = fanEither $ tag (current eithForm) submit
+        
+    errorMessage <- holdDyn Nothing $ mergeWith const [ Just <$> err , Nothing <$ formToSubmit ]
+    el "div" $ dynText $ fromMaybe "" <$> errorMessage
+
+    res :: Dynamic t (Event t T.Text) <- prerender (pure never) $ do
+      resp <- performRequestAsync $ fmap (postJson "https://galenthehooman.ninja/email") formToSubmit 
+      pure $ _xhrResponse_statusText <$> resp
+
+      
+      -- dynText =<< holdDyn "" (switchDyn res) 
+      
+    return ()
       
 
     --- email form
@@ -402,59 +418,77 @@ homepage = elClass "div" "banner" $ do
     
   return ()
 
- 
-
-contactMeForm :: ( DomBuilder t m
-                 , MonadJSM (Performable m)
-                 , PerformEvent t m
-                 , TriggerEvent t m
-                 , MonadHold t m
-                 , PostBuild t m 
-                 ) => m (Event t ())
+contactMeForm :: DomBuilder t m => m (Dynamic t (Either T.Text Form))
 contactMeForm = elAttr "div" ("class" =: "p-10 border rounded-lg bg-white" <> "style" =: "border-color:#FC74FD;border-width:4px;") $ do
   let inputClass = "border rounded-md border-black p-2"
   elStyle "div" "font-size:30px;color:#FC74FD" $ text "Contact Me"
   elClass "div" "pt-3" $ text "Have a question or want to work together?"
   elClass "div" "pt-3" $ text "Your Name"
-  name <- elClass "div" "" $ fmap (current . value) $ inputElement $ def & initialAttributes .~ "class" =: inputClass
+  name <- elClass "div" "" $ fmap value $ inputElement $ def & initialAttributes .~ "class" =: inputClass
   elClass "div" "pt-3" $ text "Your Email"
-  email <- elClass "div" "" $ fmap (current . value) $ inputElement $ def & initialAttributes .~ "class" =: inputClass
+  email <- elClass "div" "" $ fmap value $ inputElement $ def & initialAttributes .~ "class" =: inputClass
   elClass "div" "pt-3" $ text "Message"
-  message <- elStyle "div" "" $ fmap (current . value) $ textAreaElement $ def & initialAttributes .~ ("style" =: "height:100px;width:100%"
-                                                                                                       <> "rows" =: "2"
-                                                                                                       <> "class" =: inputClass
-                                                                                                      )
+  message <- elStyle "div" "" $ fmap value $ textAreaElement $ def & initialAttributes .~ ("style" =: "height:100px;width:100%"
+                                                                                            <> "rows" =: "2"
+                                                                                            <> "class" =: inputClass
+                                                                                          )
+
+
+  pure $ validateForm <$> name <*> email <*> message
+
+
+
+-- contactMeForm :: ( DomBuilder t m
+--                  , MonadJSM (Performable m)
+--                  , PerformEvent t m
+--                  , TriggerEvent t m
+--                  , MonadHold t m
+--                  , PostBuild t m 
+--                  ) => m (Event t ())
+-- contactMeForm = elAttr "div" ("class" =: "p-10 border rounded-lg bg-white" <> "style" =: "border-color:#FC74FD;border-width:4px;") $ do
+--   let inputClass = "border rounded-md border-black p-2"
+--   elStyle "div" "font-size:30px;color:#FC74FD" $ text "Contact Me"
+--   elClass "div" "pt-3" $ text "Have a question or want to work together?"
+--   elClass "div" "pt-3" $ text "Your Name"
+--   name <- elClass "div" "" $ fmap (current . value) $ inputElement $ def & initialAttributes .~ "class" =: inputClass
+--   elClass "div" "pt-3" $ text "Your Email"
+--   email <- elClass "div" "" $ fmap (current . value) $ inputElement $ def & initialAttributes .~ "class" =: inputClass
+--   elClass "div" "pt-3" $ text "Message"
+--   message <- elStyle "div" "" $ fmap (current . value) $ textAreaElement $ def & initialAttributes .~ ("style" =: "height:100px;width:100%"
+--                                                                                                        <> "rows" =: "2"
+--                                                                                                        <> "class" =: inputClass
+--                                                                                                       )
              
   
-  submit <- button "Submit"
+--   submit <- button "Submit"
 
   
   
-  --errorMessage <- holdDyn "" $ mergeWith const [nameIsEmpty, emailInvalid, messageIsEmpty]
+--   --errorMessage <- holdDyn "" $ mergeWith const [nameIsEmpty, emailInvalid, messageIsEmpty]
   
-  --dynText errorMessage 
-  let
+--   --dynText errorMessage 
+--   let
     
-    e = tag ((,,) <$> (("NAME:" <>) <$> name) <*> (("EMAIL:" <>) <$> email) <*> (("MESSAGE:" <>) <$> message)) submit
+--     e = tag ((,,) <$> (("NAME:" <>) <$> name) <*> (("EMAIL:" <>) <$> email) <*> (("MESSAGE:" <>) <$> message)) submit
 
-    formRaw = (,,) <$> name <*> email <*> message
+--     formRaw = (,,) <$> name <*> email <*> message
 
-    eithForm = ffor formRaw $ \(n, e, m) -> validateForm n e m
-    (err, form) = fanEither $ tag eithForm submit
-  -- Form type
-  -- validate Form for the 3 checks
-  -- Either Error Form 
+--     eithForm = ffor formRaw $ \(n, e, m) -> validateForm n e m
+--     (err, form) = fanEither $ tag eithForm submit
+--   -- Form type
+--   -- validate Form for the 3 checks
+--   -- Either Error Form 
 
-  errorMessage <- holdDyn Nothing (Just <$> err)
-  el "div" $ dynText $ (fromMaybe "") <$> errorMessage 
+--   errorMessage <- holdDyn Nothing (Just <$> err)
+--   el "div" $ dynText $ (fromMaybe "") <$> errorMessage 
   
-  --fanEither e 
-  res <- performRequestAsync $ fmap (postJson "http://localhost:8000/email") $ gate (fmap isJust $ current errorMessage) $ form
+--   --fanEither e 
+--   res <- performRequestAsync $ fmap (postJson "https://galenthehooman.ninja/email") $ gate (fmap isJust $ current errorMessage) $ form
 
-  -- TOOO(galen): what if the internet is out? 502
+--   -- TOOO(galen): what if the internet is out? 502
   
   
-  pure (() <$ res)
+--   pure (() <$ res)
   -- name
   -- email
   -- message
