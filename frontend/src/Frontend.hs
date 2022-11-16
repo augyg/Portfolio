@@ -117,7 +117,7 @@ aboutMeText :: T.Text
 aboutMeText = "The only accurate way to describe me is \"Polymath\" ... but what is that?"
               <> " A polymath is an individual whose knowledge spans a significant number of subjects"
               <> " and is known to draw from a number of different domains in order to solve specific problems."
-              <> " This is vital to my approach and skillset when applied to a given problem." 
+              <> " This is vital to my approach and skillset when I apply myself to a given problem." 
 
 whyDoICareText :: T.Text
 whyDoICareText = "It is a deeply held belief of mine that efficient action"
@@ -370,11 +370,11 @@ homepage = elClass "div" "banner" $ do
       -- Need to make this expandable and collapsible      
 
     elClass "div" "pt-10" $ do
-      elAttr "div" ("class" =: "text-2xl" <> "style" =: "color:#FC74FD;") $ text "Education"
+      elAttr "div" ("class" =: "text-2xl" <> "style" =: "color:#FC74FD;") $ text "Education & Mentoring"
       elClass "div" "grid grid-cols-2" $ do 
         elClass "div" "pt-5" $ do
           elAttr "a" ("href" =: "https://www.instagram.com/galen.ace.research/") $ do
-            elStyle "div" "color:#6495ED" $ text "@Galen.Ace.Research" 
+            elStyle "div" "color:#6495ED" $ text "@galen.ace.research" 
           elAttr "a" ("href" =: "https://www.youtube.com/channel/UCWj1YE_9RywYA92ZZH6YL6w") $ do
             elAttr "div" ("class" =: "pt-5" <> "style" =: "color:#6495ED") $ text "Simple Haskell (on the right)"
           elAttr "a" ("href" =: "https://www.linkedin.com/pulse/what-most-general-definition-probability-galen-sprout/") $ do
@@ -391,24 +391,26 @@ homepage = elClass "div" "banner" $ do
                            <> "allow" =: "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                            <> "allowFullscreen" =: "true") blank
 
-  elAttr "div" ("style" =: "background-color:black;width:100%;height:600px" <> "class" =: "pt-10 flex justify-center") $ do
-    
+  elAttr "div" ("style" =: "background-color:black;width:100%;height:600px" <> "class" =: "pt-10 flex justify-center") $ mdo
+   
 --    elClass "div" "" $ prerender (pure never) contactMeForm
-    eithForm :: Dynamic t (Either T.Text Form) <- elClass "div" "" $ contactMeForm
+    formToSubmit <- elClass "div" "" $ contactMeForm response
 
-    submit <- button "submit"
+    -- submit <- button "submit"
 
-    let (err, formToSubmit) = fanEither $ tag (current eithForm) submit
+    -- let (err, formToSubmit) = fanEither $ tag (current eithForm) submit
         
-    errorMessage <- holdDyn Nothing $ mergeWith const [ Just <$> err , Nothing <$ formToSubmit ]
-    el "div" $ dynText $ fromMaybe "" <$> errorMessage
+    -- errorMessage <- holdDyn Nothing $ mergeWith const [ Just <$> err , Nothing <$ formToSubmit ]
+    -- el "div" $ dynText $ fromMaybe "" <$> errorMessage
 
     res :: Dynamic t (Event t T.Text) <- prerender (pure never) $ do
       resp <- performRequestAsync $ fmap (postJson "https://galenthehooman.ninja/email") formToSubmit 
       pure $ _xhrResponse_statusText <$> resp
 
-      
-      -- dynText =<< holdDyn "" (switchDyn res) 
+    response <- holdDyn "" $ mergeWith const [ "Sent successfully :), we'll be in touch" <$ switchDyn res
+                                             , "" <$ formToSubmit
+                                             ]
+    --dynText =<< 
       
     return ()
       
@@ -418,8 +420,11 @@ homepage = elClass "div" "banner" $ do
     
   return ()
 
-contactMeForm :: DomBuilder t m => m (Dynamic t (Either T.Text Form))
-contactMeForm = elAttr "div" ("class" =: "p-10 border rounded-lg bg-white" <> "style" =: "border-color:#FC74FD;border-width:4px;") $ do
+contactMeForm :: ( MonadHold t m
+                 , DomBuilder t m
+                 , PostBuild t m
+                 ) => Dynamic t T.Text -> m (Event t Form) --m (Dynamic t (Either T.Text Form))
+contactMeForm responseSuccess = elAttr "div" ("class" =: "p-10 border rounded-lg bg-white" <> "style" =: "border-color:#FC74FD;border-width:4px;") $ do
   let inputClass = "border rounded-md border-black p-2"
   elStyle "div" "font-size:30px;color:#FC74FD" $ text "Contact Me"
   elClass "div" "pt-3" $ text "Have a question or want to work together?"
@@ -433,11 +438,19 @@ contactMeForm = elAttr "div" ("class" =: "p-10 border rounded-lg bg-white" <> "s
                                                                                             <> "class" =: inputClass
                                                                                           )
 
+  
+  eithForm <- pure $ validateForm <$> name <*> email <*> message
+  submit <- button "submit"
 
-  pure $ validateForm <$> name <*> email <*> message
+  let (err, formToSubmit) = fanEither $ tag (current eithForm) submit
+    
+  formMessage <- holdDyn Nothing $ mergeWith const [ Just <$> err
+                                                    , Nothing <$ formToSubmit -- TODO: this may happen twice
+                                                    , Just <$> (updated responseSuccess)
+                                                    ]
+  el "div" $ dynText $ fromMaybe "" <$> formMessage
 
-
-
+  pure formToSubmit
 -- contactMeForm :: ( DomBuilder t m
 --                  , MonadJSM (Performable m)
 --                  , PerformEvent t m
