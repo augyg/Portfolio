@@ -440,7 +440,7 @@ contactMeForm responseSuccess = elAttr "div" ("class" =: "p-10 border rounded-lg
 
   
   eithForm <- pure $ validateForm <$> name <*> email <*> message
-  submit <- button "submit"
+  submit <- button "Submit"
 
   let (err, formToSubmit) = fanEither $ tag (current eithForm) submit
     
